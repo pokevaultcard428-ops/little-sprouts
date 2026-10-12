@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Little Sprouts｜星露花園</title>
+<style>
+:root{--ink:#46556b;--cream:#fffaf0;--green:#8fc99c;--pink:#f4bfd0;--blue:#b9dcf8;--lav:#d9c9f5;--gold:#ffe39a}
+*{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#f5fbff,#fff8ef);font-family:ui-rounded,"Arial Rounded MT Bold","Noto Sans TC",system-ui,sans-serif;color:var(--ink)}
+.app{max-width:1050px;margin:auto;padding:14px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+h1{font-size:clamp(24px,4vw,36px);margin:0;color:#527e76;letter-spacing:.5px}
+.sub{font-size:13px;color:#81918d;margin-top:2px}
+.pill{background:#fff;border:1px solid #e7eee5;border-radius:999px;padding:8px 12px;font-size:14px;box-shadow:0 3px 12px #b3cdb422}
+main{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(260px,1fr);gap:12px}
+.panel{background:#ffffffd9;border:1px solid #e8eee6;border-radius:22px;padding:12px;box-shadow:0 8px 25px #6f9e8c12}
+#world{width:100%;display:block;border-radius:16px;touch-action:manipulation;background:#dff4dc}
+.hint{font-size:13px;color:#7c8c84;line-height:1.5;margin:8px 3px 0}
+.actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+button{font:inherit;font-weight:700;border:0;border-radius:14px;padding:11px 9px;background:#e9f5e9;color:#426c5d;cursor:pointer;box-shadow:0 3px 0 #c9e3cc;transition:transform .12s,filter .12s}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 #c9e3cc}
+button.pink{background:#ffe6ef;color:#985f79;box-shadow:0 3px 0 #f1cad8}
+button.gold{background:#fff1c9;color:#876b32;box-shadow:0 3px 0 #f1dda5}
+button.blue{background:#e5f1ff;color:#52739b;box-shadow:0 3px 0 #cbdff6}
+h2{font-size:17px;margin:0 0 10px;color:#5e8276}
+.roster{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.card{border:1px solid #edf0e9;background:#fffdf8;border-radius:15px;padding:9px;min-width:0}
+.card .name{font-weight:800;font-size:14px}
+.card .meta{font-size:11px;color:#87918a;margin-top:2px}
+.rarity{font-size:11px;font-weight:900;letter-spacing:.5px;padding:3px 7px;border-radius:999px;display:inline-block;margin-top:5px}
+.C{background:#eaf2f9;color:#6488aa}.R{background:#e2f4e7;color:#4b936b}.SR{background:#ffe5ef;color:#c45f8d}.SSR{background:#f2e5ff;color:#8d5bc4}.U{background:#e3f1ff;color:#427eb5}.SS{background:#fff0cb;color:#a17a28}.UR{background:linear-gradient(90deg,#ffd8ee,#d8d4ff,#c8f2ff);color:#7355a7}
+.small{font-size:12px;color:#7c8c84;line-height:1.55}
+.log{margin-top:10px;background:#f8fbf5;border-radius:13px;padding:10px;font-size:12px;line-height:1.55;min-height:54px}
+.bar{height:8px;background:#edf2e9;border-radius:99px;overflow:hidden;margin:5px 0 10px}.bar span{display:block;height:100%;background:linear-gradient(90deg,#f2b8d0,#c7b7f5);width:50%}
+footer{text-align:center;color:#92a49a;font-size:12px;padding:14px}
+@media(max-width:720px){main{grid-template-columns:1fr}.app{padding:10px}.panel{padding:10px}header{align-items:flex-start}.roster{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+ <div><h1>🌱 Little Sprouts</h1><div class="sub">星露花園・慢慢玩，慢慢發光</div></div>
+ <div class="pill">💧 露水 <b id="dew">12</b>　🌼 花朵 <b id="flowers">0</b></div>
+</header>
+<main>
+<section class="panel">
+ <canvas id="world" width="720" height="500" aria-label="星露花園遊戲畫面"></canvas>
+ <div class="hint">輕點花園中的位置，帶領你的小隊移動。收集露水、種花、讓星露在花園裡自在玩耍；沒有倒數，也沒有失敗懲罰。</div>
+ <div class="actions">
+  <button onclick="collectDew()">💧 收集露水 +3</button>
+  <button class="pink" onclick="plantFlower()">🌷 種一朵花</button>
+  <button class="blue" onclick="addSprout()">✨ 邀請新星露</button>
+  <button class="gold" onclick="restTeam()">🫧 休息一下</button>
+ </div>
+ <div class="log" id="log">歡迎來到星露花園！點一下草地，看看星露們會去哪裡吧。</div>
+</section>
+<aside class="panel">
+ <h2>✨ 我的星露小隊</h2>
+ <div class="small">星露會跟著你，也會自己發出小小的光。稀有度越高，外觀越精緻、特效越華麗。</div>
+ <div class="roster" id="roster" style="margin-top:10px"></div>
+ <div style="height:14px"></div>
+ <h2>🎁 幸運星露機</h2>
+ <div class="small">每次抽取消耗 5 露水。高稀有度（SSR／U／SS／UR）合計 50%，低稀有度（C／R／SR）合計 50%。</div>
+ <div style="margin-top:10px;font-size:12px;display:flex;justify-content:space-between"><b>高稀有度</b><b>50%</b></div><div class="bar"><span></span></div>
+ <div style="font-size:12px;display:flex;justify-content:space-between"><b>低稀有度</b><b>50%</b></div><div class="bar"><span style="background:linear-gradient(90deg,#a8dcb5,#b9dcf8)"></span></div>
+ <button class="gold" style="width:100%;margin-top:10px" onclick="gacha()">🌟 抽一隻星露（5 露水）</button>
+ <div class="small" style="margin-top:8px">機率：C 20%・R 20%・SR 10%・SSR 20%・U 10%・SS 10%・UR 10%。</div>
+ <div class="log" id="gachaLog">幸運星露機準備好了。也許下一位夥伴會閃閃發光！</div>
+</aside>
+</main>
+<footer>Little Sprouts · 這是第一個可玩的原型，之後可以繼續加入地圖、任務和更多星露。</footer>
+</div>
+<script>
+const canvas=document.getElementById('world'),ctx=canvas.getContext('2d');
+let dew=12,flowers=0,team=[],plants=[],particles=[],target={x:360,y:280},time=0;
+const types=[
+ {name:'露露',rarity:'C',color:'#b9ddff',glow:'#d7edff',role:'搬運新手',power:1,leaf:'#7ebca3'},
+ {name:'芽芽',rarity:'R',color:'#bde6bd',glow:'#e1f8ce',role:'花園幫手',power:2,leaf:'#63ad7d'},
+ {name:'桃桃',rarity:'SR',color:'#ffc5d9',glow:'#ffe4ef',role:'種植高手',power:3,leaf:'#80c79a'},
+ {name:'泡泡',rarity:'SSR',color:'#d9c8ff',glow:'#f1e6ff',role:'泡泡魔法',power:4,leaf:'#a3d8bd'},
+ {name:'閃閃',rarity:'U',color:'#ffe29a',glow:'#fff5c7',role:'柔光探索',power:5,leaf:'#8ec9a0'},
+ {name:'月璃',rarity:'SS',color:'#d4d8ff',glow:'#fff0c9',role:'星月守護',power:6,leaf:'#8cbfa8'},
+ {name:'星願',rarity:'UR',color:'#b5e9f1',glow:'#fff4a8',role:'彩虹星光',power:8,leaf:'#8fd1ad'}
+];
+function makeSprout(t,x,y){return {type:t,x,y,tx:x,ty:y,phase:Math.random()*6.28,rest:false};}
+team=[makeSprout(types[0],320,300),makeSprout(types[1],350,320),makeSprout(types[2],390,310)];
+function say(s){document.getElementById('log').textContent=s}
+function randType(){let n=Math.random()*100, acc=0;const chances=[20,20,10,20,10,10,10];for(let i=0;i<types.length;i++){acc+=chances[i];if(n<acc)return types[i]}return types[0]}
+function gacha(){if(dew<5){document.getElementById('gachaLog').textContent='露水還不夠喔，先去花園收集一些吧。';return}dew-=5;const t=randType();team.push(makeSprout(t,360+(Math.random()*70-35),300+(Math.random()*60-30)));document.getElementById('gachaLog').textContent=`抽到了 ${t.name}（${t.rarity}）！${t.rarity==='UR'||t.rarity==='SS'?'星光華麗地閃耀了一下！':'新夥伴開心地跳了兩下！'}`;updateUI();for(let i=0;i<18;i++)particles.push({x:360,y:230,vx:(Math.random()-.5)*3,vy:-Math.random()*3-1,life:45,color:t.color})}
+function collectDew(){dew+=3;for(let i=0;i<team.length;i++)particles.push({x:team[i].x,y:team[i].y-12,vx:(Math.random()-.5)*2,vy:-2,life:30,color:'#82c9f1'});say('叮咚！收集到 3 滴露水，星露們開心地晃了晃。');updateUI()}
+function plantFlower(){if(dew<2){say('還差一點露水才能種花，先收集一些吧。');return}dew-=2;flowers++;plants.push({x:90+Math.random()*540,y:90+Math.random()*320,kind:Math.floor(Math.random()*3),scale:.7+Math.random()*.5});say('一朵小花慢慢綻放了。附近的星露忍不住跳起舞來！');updateUI()}
+function addSprout(){if(dew<4){say('邀請新星露需要 4 滴露水喔。');return}dew-=4;const t=types[Math.floor(Math.random()*3)];team.push(makeSprout(t,340+Math.random()*40,320+Math.random()*30));say(`${t.name} 搖搖晃晃地加入小隊了！`);updateUI()}
+function restTeam(){team.forEach(s=>s.rest=!s.rest);say(team.some(s=>s.rest)?'噓——星露們縮成軟綿綿的一團，開始休息。再按一次就能繼續散步。':'星露們伸了個懶腰，又精神滿滿地出發了。')}
+function updateUI(){document.getElementById('dew').textContent=dew;document.getElementById('flowers').textContent=flowers;document.getElementById('roster').innerHTML=team.slice(-8).map(s=>`<div class="card"><div class="name">${s.type.name}</div><div class="meta">${s.type.role}</div><span class="rarity ${s.type.rarity}">${s.type.rarity}</span></div>`).join('')}
+function drawBackground(){let g=ctx.createLinearGradient(0,0,0,500);g.addColorStop(0,'#dff2df');g.addColorStop(1,'#b8dfb7');ctx.fillStyle=g;ctx.fillRect(0,0,720,500);
+ // distant rolling hills
+ for(let i=0;i<5;i++){ctx.fillStyle=['#c6e6bf','#b2dba9','#a6d69f'][i%3];ctx.beginPath();ctx.ellipse(i*190-30,90+(i%2)*28,190,80,0,0,Math.PI*2);ctx.fill()}
+ // path
+ ctx.fillStyle='#f4e8ca';ctx.beginPath();ctx.moveTo(260,500);ctx.bezierCurveTo(330,400,260,320,380,245);ctx.bezierCurveTo(450,195,450,140,510,110);ctx.lineTo(570,130);ctx.bezierCurveTo(490,220,500,270,390,340);ctx.bezierCurveTo(360,390,410,450,390,500);ctx.closePath();ctx.fill();
+ // grass flecks
+ for(let i=0;i<100;i++){let x=(i*79+23)%720,y=(i*137+41)%500;ctx.strokeStyle=i%2?'#8ac28b':'#fff5d9';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+3,y-5);ctx.stroke()}
+ // pond
+ ctx.fillStyle='#9ed8e5';ctx.beginPath();ctx.ellipse(575,370,78,43,-.18,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#d7f5f2';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(575,370,54,25,-.18,0,Math.PI*2);ctx.stroke();
+}
+function drawFlower(x,y,kind,scale=1){ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);ctx.strokeStyle='#6aa878';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(0,5);ctx.quadraticCurveTo(-4,-8,0,-17);ctx.stroke();let colors=[['#ffc4d7','#ffe6a8'],['#cbbaff','#fff0a7'],['#fff0a5','#f6b6c9']][kind%3];for(let i=0;i<5;i++){let a=i*Math.PI*2/5;ctx.fillStyle=colors[0];ctx.beginPath();ctx.ellipse(Math.cos(a)*8,Math.sin(a)*8-18,6,9,a,0,Math.PI*2);ctx.fill()}ctx.fillStyle=colors[1];ctx.beginPath();ctx.arc(0,-18,5,0,Math.PI*2);ctx.fill();ctx.restore()}
+function drawSprout(s){const t=s.type;let bob=s.rest?Math.sin(time*.04+s.phase)*1.5:Math.sin(time*.07+s.phase)*4;let x=s.x,y=s.y+bob;ctx.save();ctx.translate(x,y);
+ // soft aura stronger at high rarity
+ let aura=t.power>=4?10+t.power*2:3;ctx.globalAlpha=.22;ctx.fillStyle=t.glow;ctx.beginPath();ctx.arc(0,-8,20+aura,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+ // leaf ears
+ ctx.fillStyle=t.leaf;ctx.beginPath();ctx.ellipse(-8,-29,7,14,-.65,0,Math.PI*2);ctx.ellipse(9,-30,7,14,.65,0,Math.PI*2);ctx.fill();
+ // body jelly
+ let grad=ctx.createRadialGradient(-7,-21,2,0,-8,29);grad.addColorStop(0,'#ffffff');grad.addColorStop(.25,t.color);grad.addColorStop(1,t.glow);ctx.fillStyle=grad;ctx.beginPath();ctx.moveTo(0,-34);ctx.bezierCurveTo(22,-31,27,-11,21,5);ctx.quadraticCurveTo(18,19,7,18);ctx.quadraticCurveTo(0,24,-7,18);ctx.quadraticCurveTo(-24,17,-22,0);ctx.bezierCurveTo(-25,-18,-15,-32,0,-34);ctx.fill();
+ ctx.strokeStyle='#ffffffaa';ctx.lineWidth=2;ctx.beginPath();ctx.arc(-7,-15,5,3.6,5.3);ctx.stroke();
+ // feet
+ ctx.fillStyle=t.color;ctx.beginPath();ctx.ellipse(-10,17,7,4,0,0,Math.PI*2);ctx.ellipse(10,17,7,4,0,0,Math.PI*2);ctx.fill();
+ // face
+ ctx.fillStyle='#40516b';ctx.beginPath();ctx.ellipse(-7,-4,2.8,4,0,0,Math.PI*2);ctx.ellipse(7,-4,2.8,4,0,0,Math.PI*2);ctx.fill();
+ ctx.fillStyle='#f5a9b8';ctx.globalAlpha=.75;ctx.beginPath();ctx.ellipse(-13,3,4,2.5,0,0,Math.PI*2);ctx.ellipse(13,3,4,2.5,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;
+ ctx.strokeStyle='#6e7183';ctx.lineWidth=1.5;ctx.beginPath();ctx.arc(0,1,3,.2,Math.PI-.2);ctx.stroke();
+ // central star grows ornate with rarity
+ if(t.power>=3){ctx.fillStyle=t.power>=6?'#fff0a1':'#fff5c9';ctx.shadowColor=t.glow;ctx.shadowBlur=t.power>=6?12:5;drawStar(0,-17,t.power>=6?7:5);ctx.shadowBlur=0}
+ if(t.rarity==='SSR'||t.rarity==='U'||t.rarity==='SS'||t.rarity==='UR'){ctx.strokeStyle=t.rarity==='UR'?'#fff1a6':'#ffffffcc';ctx.lineWidth=t.rarity==='UR'?2.5:1.5;ctx.beginPath();ctx.arc(0,-7,28,Math.PI*1.05,Math.PI*1.95);ctx.stroke()}
+ if(t.rarity==='SS'||t.rarity==='UR'){ctx.fillStyle='#fff2a6';drawStar(0,-48,t.rarity==='UR'?6:4);drawStar(-25,-22,3);drawStar(24,-25,3)}
+ ctx.restore()}
+function drawStar(x,y,r){ctx.beginPath();for(let i=0;i<10;i++){let a=-Math.PI/2+i*Math.PI/5,rr=i%2===0?r:r*.45;let px=x+Math.cos(a)*rr,py=y+Math.sin(a)*rr;i?ctx.lineTo(px,py):ctx.moveTo(px,py)}ctx.closePath();ctx.fill()}
+function frame(){time++;drawBackground();plants.forEach(p=>drawFlower(p.x,p.y,p.kind,p.scale));
+ // decorative mushrooms and stepping stones
+ for(let i=0;i<4;i++){let x=45+i*180,y=430+(i%2)*18;ctx.fillStyle='#f0d6b6';ctx.beginPath();ctx.ellipse(x,y,14,6,0,0,Math.PI*2);ctx.fill()}
+ // dew drops
+ for(let i=0;i<4;i++){let x=80+i*175,y=140+(i%2)*72;ctx.fillStyle='#8dcce8aa';ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fill();ctx.fillStyle='#ffffff';ctx.beginPath();ctx.arc(x-1.5,y-2,1.5,0,Math.PI*2);ctx.fill()}
+ // movement
+ team.forEach((s,i)=>{if(!s.rest){let tx=target.x+Math.cos(time*.018+i*2.4)*(25+i%3*7),ty=target.y+Math.sin(time*.018+i*2.4)*(17+i%2*8);s.tx=tx;s.ty=ty;s.x+=(s.tx-s.x)*.025;s.y+=(s.ty-s.y)*.025}drawSprout(s)});
+ particles=particles.filter(p=>p.life-->0);particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.035;ctx.globalAlpha=Math.max(0,p.life/35);ctx.fillStyle=p.color;ctx.beginPath();ctx.arc(p.x,p.y,3,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1});
+ // target marker
+ ctx.strokeStyle='#ffffffbb';ctx.lineWidth=2;ctx.beginPath();ctx.arc(target.x,target.y,15+Math.sin(time*.1)*2,0,Math.PI*2);ctx.stroke();
+ requestAnimationFrame(frame)}
+canvas.addEventListener('pointerdown',e=>{const r=canvas.getBoundingClientRect();target={x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height};say('小隊出發！星露們正搖搖晃晃地走向你點選的地方。')});
+updateUI();frame();
+</script>
+</body></html>
